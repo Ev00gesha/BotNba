@@ -36,7 +36,7 @@ def print_game(team, message):
                     spis_time_shd = sheet["C" + str(i + 1)].value.split(":")
                     spis_time_day = time.split(":")
 
-                    if int(spis_time_day[0]) <= int(spis_time_shd[0]):
+                    if int(spis_time_day[0]) <= int(spis_time_shd[0] and int(spis_time_day[1]) < int(spis_time_shd[1])):
                         bot.send_message(
                             message.chat.id,
                             f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
@@ -103,7 +103,7 @@ def answer(call):
         btn_IND = types.InlineKeyboardButton(text='Индиана Пэйсерс', callback_data='IND')
         btn_MIL = types.InlineKeyboardButton(text='Милуоки Бакс', callback_data='MIL')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана✅', reply_markup=None)
 
         meast_inl.add(
             btn_BOS, btn_NYK, btn_BRK, btn_PHI, btn_TOR,
@@ -135,7 +135,7 @@ def answer(call):
         btn_PHO = types.InlineKeyboardButton(text='Финикс Санз', callback_data='PHO')
         btn_SAC = types.InlineKeyboardButton(text='Сакраменто Кингз', callback_data='SAC')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана✅', reply_markup=None)
 
         mwest_inl.add(
             btn_POR, btn_MIN, btn_OKC, btn_DEN, btn_UTA,
@@ -148,7 +148,7 @@ def answer(call):
             reply_markup=mwest_inl
             )
     else:
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Команда выбрана', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Команда выбрана✅', reply_markup=None)
         print_game(call.data, call.message)
 
 
