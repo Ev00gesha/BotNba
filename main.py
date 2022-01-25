@@ -1,3 +1,4 @@
+from email.mime import message
 import telebot
 import datetime
 import config
@@ -5,6 +6,16 @@ from telebot import types
 from openpyxl import Workbook, load_workbook
 
 bot = telebot.TeleBot(config.CONFIG['token'])
+
+# Тест времени
+@bot.message_handler(commands=['test'])
+def test_time(message):
+    time = str(datetime.datetime.today())[11:16]
+    bot.send_message(
+        message.chat.id,
+        time
+    )
+
 
 def reply_get_user_info(message):
     m_inl = types.InlineKeyboardMarkup()
@@ -19,6 +30,7 @@ def reply_get_user_info(message):
         'Выберите конференцию',
         reply_markup=m_inl
     )
+
 
 def print_game(team, message):
     wb = load_workbook("TrueShd.xlsx")
@@ -40,16 +52,16 @@ def print_game(team, message):
                         bot.send_message(
                             message.chat.id,
                             f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                            )
+                        )
                         reply_get_user_info(message)
                         break
                     else:
                         continue
                 elif int(spis_today_day[2]) < int(spis_shd_day[2]):
                     bot.send_message(
-                            message.chat.id,
-                            f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                            )
+                        message.chat.id,
+                        f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
+                    )
                     reply_get_user_info(message)
                     break
                 else:
@@ -81,29 +93,45 @@ def get_user_info(message):
     )
 
 
-@bot.callback_query_handler(func = lambda call: True)
+@bot.callback_query_handler(func=lambda call: True)
 def answer(call):
     if call.data == 'east':
         meast_inl = types.InlineKeyboardMarkup()
-        btn_BOS = types.InlineKeyboardButton(text='Бостон Селтикс', callback_data='BOS')
-        btn_NYK = types.InlineKeyboardButton(text='Нью-Йорк Никс', callback_data='NYK')
-        btn_BRK = types.InlineKeyboardButton(text='Бруклин Нетс', callback_data='BRK')
-        btn_PHI = types.InlineKeyboardButton(text='Филадельфия 76 Сиксерс', callback_data='PHI')
-        btn_TOR = types.InlineKeyboardButton(text='Торонто Рапторз', callback_data='TOR')
+        btn_BOS = types.InlineKeyboardButton(
+            text='Бостон Селтикс', callback_data='BOS')
+        btn_NYK = types.InlineKeyboardButton(
+            text='Нью-Йорк Никс', callback_data='NYK')
+        btn_BRK = types.InlineKeyboardButton(
+            text='Бруклин Нетс', callback_data='BRK')
+        btn_PHI = types.InlineKeyboardButton(
+            text='Филадельфия 76 Сиксерс', callback_data='PHI')
+        btn_TOR = types.InlineKeyboardButton(
+            text='Торонто Рапторз', callback_data='TOR')
 
-        btn_ATL = types.InlineKeyboardButton(text='Атланта Хоукс', callback_data='ATL')
-        btn_CHO = types.InlineKeyboardButton(text='Шарлотт Хорнетс', callback_data='CHO')
-        btn_MIA = types.InlineKeyboardButton(text='Майами Хит', callback_data='MIA')
-        btn_ORL = types.InlineKeyboardButton(text='Орладно Мэджик', callback_data='ORL')
-        btn_WAS = types.InlineKeyboardButton(text='Вашингтон Уизардс', callback_data='WAS')
+        btn_ATL = types.InlineKeyboardButton(
+            text='Атланта Хоукс', callback_data='ATL')
+        btn_CHO = types.InlineKeyboardButton(
+            text='Шарлотт Хорнетс', callback_data='CHO')
+        btn_MIA = types.InlineKeyboardButton(
+            text='Майами Хит', callback_data='MIA')
+        btn_ORL = types.InlineKeyboardButton(
+            text='Орладно Мэджик', callback_data='ORL')
+        btn_WAS = types.InlineKeyboardButton(
+            text='Вашингтон Уизардс', callback_data='WAS')
 
-        btn_CHI = types.InlineKeyboardButton(text='Чикаго Буллз', callback_data='CHI')
-        btn_CLE = types.InlineKeyboardButton(text='Кливленд Кавальерс', callback_data='CLE')
-        btn_DET = types.InlineKeyboardButton(text='Детроит Пистонс', callback_data='DET')
-        btn_IND = types.InlineKeyboardButton(text='Индиана Пэйсерс', callback_data='IND')
-        btn_MIL = types.InlineKeyboardButton(text='Милуоки Бакс', callback_data='MIL')
+        btn_CHI = types.InlineKeyboardButton(
+            text='Чикаго Буллз', callback_data='CHI')
+        btn_CLE = types.InlineKeyboardButton(
+            text='Кливленд Кавальерс', callback_data='CLE')
+        btn_DET = types.InlineKeyboardButton(
+            text='Детроит Пистонс', callback_data='DET')
+        btn_IND = types.InlineKeyboardButton(
+            text='Индиана Пэйсерс', callback_data='IND')
+        btn_MIL = types.InlineKeyboardButton(
+            text='Милуоки Бакс', callback_data='MIL')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана✅', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Конференция выбрана✅', reply_markup=None)
 
         meast_inl.add(
             btn_BOS, btn_NYK, btn_BRK, btn_PHI, btn_TOR,
@@ -114,28 +142,44 @@ def answer(call):
             call.message.chat.id,
             'Выберите команду',
             reply_markup=meast_inl
-            )
+        )
     elif call.data == 'west':
         mwest_inl = types.InlineKeyboardMarkup()
-        btn_POR = types.InlineKeyboardButton(text='Портленд Трейл Блейзерс', callback_data='POR')
-        btn_MIN = types.InlineKeyboardButton(text='Миннесота Тимбервулз', callback_data='MIN')
-        btn_OKC = types.InlineKeyboardButton(text='Оклахома-Сити Тандер', callback_data='OKC')
-        btn_DEN = types.InlineKeyboardButton(text='Денвер Наггетс', callback_data='DEN')
-        btn_UTA = types.InlineKeyboardButton(text='Юта Джаз', callback_data='UTA')
+        btn_POR = types.InlineKeyboardButton(
+            text='Портленд Трейл Блейзерс', callback_data='POR')
+        btn_MIN = types.InlineKeyboardButton(
+            text='Миннесота Тимбервулз', callback_data='MIN')
+        btn_OKC = types.InlineKeyboardButton(
+            text='Оклахома-Сити Тандер', callback_data='OKC')
+        btn_DEN = types.InlineKeyboardButton(
+            text='Денвер Наггетс', callback_data='DEN')
+        btn_UTA = types.InlineKeyboardButton(
+            text='Юта Джаз', callback_data='UTA')
 
-        btn_DAL = types.InlineKeyboardButton(text='Даллас Маверикс', callback_data='DAL')
-        btn_HOU = types.InlineKeyboardButton(text='Хьюстон Рокетс', callback_data='HOU')
-        btn_MEM = types.InlineKeyboardButton(text='Мемфис Гриззлис', callback_data='MEM')
-        btn_NOP = types.InlineKeyboardButton(text='Нью-Орлеан Пеликанс', callback_data='NOP')
-        btn_SAS = types.InlineKeyboardButton(text='Сан-Антонио Спёрс', callback_data='SAS')
+        btn_DAL = types.InlineKeyboardButton(
+            text='Даллас Маверикс', callback_data='DAL')
+        btn_HOU = types.InlineKeyboardButton(
+            text='Хьюстон Рокетс', callback_data='HOU')
+        btn_MEM = types.InlineKeyboardButton(
+            text='Мемфис Гриззлис', callback_data='MEM')
+        btn_NOP = types.InlineKeyboardButton(
+            text='Нью-Орлеан Пеликанс', callback_data='NOP')
+        btn_SAS = types.InlineKeyboardButton(
+            text='Сан-Антонио Спёрс', callback_data='SAS')
 
-        btn_GSW = types.InlineKeyboardButton(text='Голден Стэйт Уорриорз', callback_data='GSW')
-        btn_LAC = types.InlineKeyboardButton(text='ЛА Клипперс', callback_data='LAC')
-        btn_LAL = types.InlineKeyboardButton(text='ЛА Лейкерс', callback_data='LAL')
-        btn_PHO = types.InlineKeyboardButton(text='Финикс Санз', callback_data='PHO')
-        btn_SAC = types.InlineKeyboardButton(text='Сакраменто Кингз', callback_data='SAC')
+        btn_GSW = types.InlineKeyboardButton(
+            text='Голден Стэйт Уорриорз', callback_data='GSW')
+        btn_LAC = types.InlineKeyboardButton(
+            text='ЛА Клипперс', callback_data='LAC')
+        btn_LAL = types.InlineKeyboardButton(
+            text='ЛА Лейкерс', callback_data='LAL')
+        btn_PHO = types.InlineKeyboardButton(
+            text='Финикс Санз', callback_data='PHO')
+        btn_SAC = types.InlineKeyboardButton(
+            text='Сакраменто Кингз', callback_data='SAC')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Конференция выбрана✅', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Конференция выбрана✅', reply_markup=None)
 
         mwest_inl.add(
             btn_POR, btn_MIN, btn_OKC, btn_DEN, btn_UTA,
@@ -146,9 +190,10 @@ def answer(call):
             call.message.chat.id,
             'Выберите команду',
             reply_markup=mwest_inl
-            )
+        )
     else:
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Команда выбрана✅', reply_markup=None)
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              message_id=call.message.message_id, text='Команда выбрана✅', reply_markup=None)
         print_game(call.data, call.message)
 
 
