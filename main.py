@@ -11,9 +11,11 @@ bot = telebot.TeleBot(config.CONFIG['token'])
 @bot.message_handler(commands=['test'])
 def test_time(message):
     time = str(datetime.datetime.today())[11:16]
+    spis_time_day = time.split(":")
+    
     bot.send_message(
         message.chat.id,
-        time
+        spis_time_day[0]
     )
 
 
@@ -47,7 +49,9 @@ def print_game(team, message):
 
                     spis_time_shd = sheet["C" + str(i + 1)].value.split(":")
                     spis_time_day = time.split(":")
-
+                    for i in range(len(spis_time_day)):
+                        spis_time_day[i] = int(spis_time_day[i])
+                    spis_time_day[0] += 3
                     if int(spis_time_day[0]) <= int(spis_time_shd[0] and int(spis_time_day[1]) < int(spis_time_shd[1])):
                         bot.send_message(
                             message.chat.id,
