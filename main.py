@@ -12,7 +12,9 @@ bot = telebot.TeleBot(config.CONFIG['token'])
 def test_time(message):
     time = str(datetime.datetime.today())[11:16]
     spis_time_day = time.split(":")
-    
+    for i in range(len(spis_time_day)):
+         spis_time_day[i] = int(spis_time_day[i])
+    spis_time_day[0] += 3
     bot.send_message(
         message.chat.id,
         spis_time_day[0]
