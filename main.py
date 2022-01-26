@@ -7,20 +7,6 @@ from openpyxl import Workbook, load_workbook
 
 bot = telebot.TeleBot(config.CONFIG['token'])
 
-# Тест времени
-@bot.message_handler(commands=['test'])
-def test_time(message):
-    time = str(datetime.datetime.today())[11:16]
-    spis_time_day = time.split(":")
-    for i in range(len(spis_time_day)):
-        spis_time_day[i] = int(spis_time_day[i])
-    spis_time_day[0] += 3
-    bot.send_message(
-        message.chat.id,
-        spis_time_day[0]
-    )
-
-
 def reply_get_user_info(message):
     m_inl = types.InlineKeyboardMarkup()
     btn_east = types.InlineKeyboardButton(
@@ -28,7 +14,6 @@ def reply_get_user_info(message):
     btn_west = types.InlineKeyboardButton(
         text='Западная', callback_data='west')
     m_inl.add(btn_east, btn_west)
-
     bot.send_message(
         message.chat.id,
         'Выберите конференцию',
@@ -86,16 +71,21 @@ def get_user_info(message):
     btn_west = types.InlineKeyboardButton(
         text='Западная', callback_data='west')
     m_inl.add(btn_east, btn_west)
-
     bot.send_message(
         message.chat.id,
         'Вас приветствует Бот NBA,\nВы можете узнать дату и время следующей игры, любой команды NBA'
     )
-
     bot.send_message(
         message.chat.id,
         'Выберите конференцию',
         reply_markup=m_inl
+    )
+
+@bot.message_handler(content_types=['text'])
+def eror_message(message):
+    bot.send_message(
+        message.chat.id,
+        "Прости я не понимаю твою команду😔"
     )
 
 
@@ -113,7 +103,6 @@ def answer(call):
             text='Филадельфия 76 Сиксерс', callback_data='PHI')
         btn_TOR = types.InlineKeyboardButton(
             text='Торонто Рапторз', callback_data='TOR')
-
         btn_ATL = types.InlineKeyboardButton(
             text='Атланта Хоукс', callback_data='ATL')
         btn_CHO = types.InlineKeyboardButton(
@@ -124,7 +113,6 @@ def answer(call):
             text='Орладно Мэджик', callback_data='ORL')
         btn_WAS = types.InlineKeyboardButton(
             text='Вашингтон Уизардс', callback_data='WAS')
-
         btn_CHI = types.InlineKeyboardButton(
             text='Чикаго Буллз', callback_data='CHI')
         btn_CLE = types.InlineKeyboardButton(
@@ -136,9 +124,6 @@ def answer(call):
         btn_MIL = types.InlineKeyboardButton(
             text='Милуоки Бакс', callback_data='MIL')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='Конференция выбрана✅', reply_markup=None)
-
         meast_inl.add(
             btn_BOS, btn_NYK, btn_BRK, btn_PHI, btn_TOR,
             btn_ATL, btn_CHO, btn_MIA, btn_ORL, btn_WAS,
@@ -149,6 +134,9 @@ def answer(call):
             'Выберите команду',
             reply_markup=meast_inl
         )
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Конференция выбрана✅', reply_markup=None)
+
     elif call.data == 'west':
         mwest_inl = types.InlineKeyboardMarkup()
         btn_POR = types.InlineKeyboardButton(
@@ -161,7 +149,6 @@ def answer(call):
             text='Денвер Наггетс', callback_data='DEN')
         btn_UTA = types.InlineKeyboardButton(
             text='Юта Джаз', callback_data='UTA')
-
         btn_DAL = types.InlineKeyboardButton(
             text='Даллас Маверикс', callback_data='DAL')
         btn_HOU = types.InlineKeyboardButton(
@@ -172,7 +159,6 @@ def answer(call):
             text='Нью-Орлеан Пеликанс', callback_data='NOP')
         btn_SAS = types.InlineKeyboardButton(
             text='Сан-Антонио Спёрс', callback_data='SAS')
-
         btn_GSW = types.InlineKeyboardButton(
             text='Голден Стэйт Уорриорз', callback_data='GSW')
         btn_LAC = types.InlineKeyboardButton(
@@ -184,9 +170,6 @@ def answer(call):
         btn_SAC = types.InlineKeyboardButton(
             text='Сакраменто Кингз', callback_data='SAC')
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='Конференция выбрана✅', reply_markup=None)
-
         mwest_inl.add(
             btn_POR, btn_MIN, btn_OKC, btn_DEN, btn_UTA,
             btn_DAL, btn_HOU, btn_MEM, btn_NOP, btn_SAS,
@@ -197,6 +180,9 @@ def answer(call):
             'Выберите команду',
             reply_markup=mwest_inl
         )
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Конференция выбрана✅', reply_markup=None)
+
     else:
         bot.edit_message_text(chat_id=call.message.chat.id,
                               message_id=call.message.message_id, text='Команда выбрана✅', reply_markup=None)
