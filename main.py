@@ -89,6 +89,13 @@ def true_time(time):
     return time_shd
 
 
+def true_time(time):
+    time_shd = time.split(':')
+    time_shd = [int(time_shd[i]) for i in range(len(time.split(':')))]
+    time_shd[0] += 3
+    return time_shd
+
+
 def print_game(team, message):
     wb = load_workbook("TrueShd.xlsx")
     sheet = wb[str(team)]
