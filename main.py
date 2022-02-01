@@ -1,62 +1,117 @@
 from email.mime import message
+import sqlite3
 import telebot
 import datetime
 import config
 from telebot import types
 from openpyxl import Workbook, load_workbook
+import time
 
 bot = telebot.TeleBot(config.CONFIG['token'])
 
+
+class Person:
+    ind = '0'
+    team = 'default'
+    user_info = ()
+
+    def __init__(self, id_person=ind, team_person=team):
+        self.ind = str(id_person)
+        self.team = str(team_person)
+        self.user_info = (self.team, self.ind)
+
+    def write_data(self):
+        sql = sqlite3.connect("User_info.db")
+        cur = sql.cursor()
+
+        cur.execute("SELECT id_user FROM users")
+        x = cur.fetchall()
+        sql.commit()
+
+        data = [a[0] for a in x]
+        if self.ind in data:
+            cur.execute(
+                "UPDATE users SET team_user = ? WHERE id_user = ?", self.user_info)
+            sql.commit()
+        else:
+            cur.execute(
+                "INSERT INTO users(team_user, id_user) VALUES (?, ?);", self.user_info)
+            sql.commit()
+
+
+def choos_per(message):
+    global choos_id
+    choos_id = 1
+    bot.send_message(message.chat.id, "Отлично, теперь давай выберем команду")
+    bot.send_message(message.chat.id, 'Выберите конференцию',
+                     reply_markup=m_inl)
+
+
+def remove_mes(chat_id, mes_id, index):
+    if index == 0:
+        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
+                              text='Ты сделал выбор🤯', reply_markup=None)
+    elif index == 1:
+        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
+                              text='Конференция выбрана✅', reply_markup=None)
+    elif index == 2:
+        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
+                              text='Команда выбрана✅', reply_markup=None)
+    else:
+        pass
+
+
 def reply_get_user_info(message):
-    m_inl = types.InlineKeyboardMarkup()
-    btn_east = types.InlineKeyboardButton(
-        text='Восточная', callback_data='east')
-    btn_west = types.InlineKeyboardButton(
-        text='Западная', callback_data='west')
-    m_inl.add(btn_east, btn_west)
-    bot.send_message(
-        message.chat.id,
-        'Выберите конференцию',
-        reply_markup=m_inl
-    )
+    time.sleep(3)
+    rek_kb = types.ReplyKeyboardMarkup(
+        resize_keyboard=True, one_time_keyboard=True)
+    btn_reply = types.KeyboardButton('Выбрать снова команду')
+    btn_main = types.KeyboardButton('Вернуться в главное меню')
+    rek_kb.add(btn_reply, btn_main)
+
+    bot.send_message(message.chat.id, 'Нажми на кнопку', reply_markup=rek_kb)
+
+
+def main_info(message):
+    first_kb = types.InlineKeyboardMarkup()
+    btn_all = types.InlineKeyboardButton(text='1', callback_data='all')
+    btn_single = types.InlineKeyboardButton(text='2', callback_data='single')
+    first_kb.add(btn_all, btn_single)
+
+    bot.send_message(message.chat.id, "Ты в главном меню😎")
+    bot.send_message(message.chat.id, "1. Ты можешь узнать расписание команды выбирая её из списка всех команд\n2. Ты можешь добавить в 'Избранные' одну команду и узнавать расписание только этой команды\nВыбор за тобой🤫", reply_markup=first_kb)
+
+
+def true_time(time):
+    time_shd = time.split(':')
+    time_shd = [int(time_shd[i]) for i in range(len(time.split(':')))]
+    time_shd[0] += 3
+    return time_shd
 
 
 def print_game(team, message):
     wb = load_workbook("TrueShd.xlsx")
     sheet = wb[str(team)]
 
-    spis_today_day = str(datetime.date.today()).split("-")
-    time = str(datetime.datetime.today())[11:16]
-
+    date_today = str(datetime.date.today()).split('-')
+    time_today = str(datetime.datetime.today())[11:16].split(':')
     for i in range(sheet.max_row):
-        spis_shd_day = (str(sheet["D" + str(i + 1)].value)).split(":")
-        if spis_today_day[0] == spis_shd_day[0]:
-            if spis_today_day[1] == spis_shd_day[1]:
-                if int(spis_today_day[2]) == int(spis_shd_day[2]):
-
-                    spis_time_shd = sheet["C" + str(i + 1)].value.split(":")
-                    spis_time_day = time.split(":")
-                    for i in range(len(spis_time_day)):
-                        spis_time_day[i] = int(spis_time_day[i])
-                    spis_time_day[0] += 3
-                    if int(spis_time_day[0]) <= int(spis_time_shd[0] and int(spis_time_day[1]) < int(spis_time_shd[1])):
-                        bot.send_message(
-                            message.chat.id,
-                            f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                        )
-                        reply_get_user_info(message)
-                        break
-                    else:
-                        continue
-                elif int(spis_today_day[2]) < int(spis_shd_day[2]):
+        date_shd = (str(sheet["D" + str(i + 1)].value)).split(":")
+        if date_today[0] == date_shd[0] and date_today[1] == date_shd[1]:
+            if date_today[2] == date_shd[2]:
+                time_shd = true_time(sheet['C' + str(i + 1)].value)
+                if int(time_today[0]) <= time_shd[0] and int(time_today[1]) < time_shd[1]:
                     bot.send_message(
-                        message.chat.id,
-                        f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                    )
+                        message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
                     reply_get_user_info(message)
                     break
                 else:
                     continue
+            elif int(date_today[2]) < int(date_shd[2]):
+                bot.send_message(
+                    message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
+                reply_get_user_info(message)
+                break
             else:
                 continue
         else:
@@ -64,34 +119,36 @@ def print_game(team, message):
 
 
 @bot.message_handler(commands=['start'])
-def get_user_info(message):
-    m_inl = types.InlineKeyboardMarkup()
-    btn_east = types.InlineKeyboardButton(
-        text='Восточная', callback_data='east')
-    btn_west = types.InlineKeyboardButton(
-        text='Западная', callback_data='west')
-    m_inl.add(btn_east, btn_west)
-    bot.send_message(
-        message.chat.id,
-        'Вас приветствует Бот NBA,\nВы можете узнать дату и время следующей игры, любой команды NBA'
-    )
-    bot.send_message(
-        message.chat.id,
-        'Выберите конференцию',
-        reply_markup=m_inl
-    )
+def strat_user_info(message):
+    bot.send_message(message.chat.id, 'Привет, Я Бот "Shedule NBA"')
+    main_info(message)
+
 
 @bot.message_handler(content_types=['text'])
 def eror_message(message):
-    bot.send_message(
-        message.chat.id,
-        "Прости я не понимаю твою команду😔"
-    )
+    if message.text == 'Выбрать снова команду':
+        bot.send_message(
+            message.chat.id, "Выберите конференцию", reply_markup=m_inl)
+    elif message.text == 'Вернуться в главное меню':
+        main_info(message)
+    else:
+        bot.send_message(message.chat.id, "Прости я не понимаю твою команду😔")
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call):
-    if call.data == 'east':
+    global choos_id
+    if call.data == 'all':
+        choos_id = 0
+        remove_mes(call.message.chat.id, call.message.message_id, 0)
+        bot.send_message(call.message.chat.id,
+                         'Выберите конференцию', reply_markup=m_inl)
+
+    elif call.data == 'single':
+        remove_mes(call.message.chat.id, call.message.message_id, 0)
+        choos_per(call.message)
+
+    elif call.data == 'east':
         meast_inl = types.InlineKeyboardMarkup()
         btn_BOS = types.InlineKeyboardButton(
             text='Бостон Селтикс', callback_data='BOS')
@@ -123,19 +180,14 @@ def answer(call):
             text='Индиана Пэйсерс', callback_data='IND')
         btn_MIL = types.InlineKeyboardButton(
             text='Милуоки Бакс', callback_data='MIL')
-
         meast_inl.add(
             btn_BOS, btn_NYK, btn_BRK, btn_PHI, btn_TOR,
             btn_ATL, btn_CHO, btn_MIA, btn_ORL, btn_WAS,
             btn_CHI, btn_CLE, btn_DET, btn_IND, btn_MIL)
 
-        bot.send_message(
-            call.message.chat.id,
-            'Выберите команду',
-            reply_markup=meast_inl
-        )
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='Конференция выбрана✅', reply_markup=None)
+        remove_mes(call.message.chat.id, call.message.message_id, 1)
+        bot.send_message(call.message.chat.id,
+                         'Выберите команду', reply_markup=meast_inl)
 
     elif call.data == 'west':
         mwest_inl = types.InlineKeyboardMarkup()
@@ -169,24 +221,32 @@ def answer(call):
             text='Финикс Санз', callback_data='PHO')
         btn_SAC = types.InlineKeyboardButton(
             text='Сакраменто Кингз', callback_data='SAC')
-
         mwest_inl.add(
             btn_POR, btn_MIN, btn_OKC, btn_DEN, btn_UTA,
             btn_DAL, btn_HOU, btn_MEM, btn_NOP, btn_SAS,
             btn_GSW, btn_LAC, btn_LAL, btn_PHO, btn_SAC)
 
-        bot.send_message(
-            call.message.chat.id,
-            'Выберите команду',
-            reply_markup=mwest_inl
-        )
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='Конференция выбрана✅', reply_markup=None)
+        remove_mes(call.message.chat.id, call.message.message_id, 1)
+        bot.send_message(call.message.chat.id,
+                         'Выберите команду', reply_markup=mwest_inl)
 
     else:
-        bot.edit_message_text(chat_id=call.message.chat.id,
-                              message_id=call.message.message_id, text='Команда выбрана✅', reply_markup=None)
-        print_game(call.data, call.message)
+        remove_mes(call.message.chat.id, call.message.message_id, 2)
+        if choos_id == 1:
+            id_user = call.message.from_user.id
+            team_user = call.data
+            user = Person(id_user, team_user)
+            user.write_data()
+            reply_get_user_info(call.message)
+        else:
+            print_game(call.data, call.message)
 
+
+m_inl = types.InlineKeyboardMarkup()
+btn_east = types.InlineKeyboardButton(text='Восточная', callback_data='east')
+btn_west = types.InlineKeyboardButton(text='Западная', callback_data='west')
+m_inl.add(btn_east, btn_west)
+
+choos_id = 0
 
 bot.polling(none_stop=True, interval=0)
