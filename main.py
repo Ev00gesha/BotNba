@@ -21,42 +21,36 @@ def reply_get_user_info(message):
     )
 
 
+def true_time(time):
+    time_shd = time.split(':')
+    time_shd = [int(time_shd[i]) for i in range(len(time.split(':')))]
+    time_shd[0] += 3
+    return time_shd
+
+
 def print_game(team, message):
     wb = load_workbook("TrueShd.xlsx")
     sheet = wb[str(team)]
 
-    spis_today_day = str(datetime.date.today()).split("-")
-    time = str(datetime.datetime.today())[11:16]
-
+    date_today = str(datetime.date.today()).split('-')
+    time_today = str(datetime.datetime.today())[11:16].split(':')
     for i in range(sheet.max_row):
-        spis_shd_day = (str(sheet["D" + str(i + 1)].value)).split(":")
-        if spis_today_day[0] == spis_shd_day[0]:
-            if spis_today_day[1] == spis_shd_day[1]:
-                if int(spis_today_day[2]) == int(spis_shd_day[2]):
-
-                    spis_time_shd = sheet["C" + str(i + 1)].value.split(":")
-                    spis_time_day = time.split(":")
-                    for i in range(len(spis_time_day)):
-                        spis_time_day[i] = int(spis_time_day[i])
-                    spis_time_day[0] += 3
-                    if int(spis_time_day[0]) <= int(spis_time_shd[0] and int(spis_time_day[1]) < int(spis_time_shd[1])):
-                        bot.send_message(
-                            message.chat.id,
-                            f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                        )
-                        reply_get_user_info(message)
-                        break
-                    else:
-                        continue
-                elif int(spis_today_day[2]) < int(spis_shd_day[2]):
+        date_shd = (str(sheet["D" + str(i + 1)].value)).split(":")
+        if date_today[0] == date_shd[0] and date_today[1] == date_shd[1]:
+            if date_today[2] == date_shd[2]:
+                time_shd = true_time(sheet['C' + str(i + 1)].value)
+                if int(time_today[0]) <= time_shd[0] and int(time_today[1]) < time_shd[1]:
                     bot.send_message(
-                        message.chat.id,
-                        f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}"
-                    )
+                        message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
                     reply_get_user_info(message)
                     break
                 else:
                     continue
+            elif int(date_today[2]) < int(date_shd[2]):
+                bot.send_message(
+                    message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
+                reply_get_user_info(message)
+                break
             else:
                 continue
         else:
