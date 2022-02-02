@@ -39,47 +39,31 @@ class Person:
             sql.commit()
 
 
-def choos_per(message):
-    global choos_id
-    choos_id = 1
-    bot.send_message(message.chat.id, "Отлично, теперь давай выберем команду")
-    bot.send_message(message.chat.id, 'Выберите конференцию',
-                     reply_markup=m_inl)
+def reply_get_user_info(message, mode):
+    time.sleep(1)
+    if mode == 1:
+        rek_kb = types.ReplyKeyboardMarkup(
+            resize_keyboard=True, one_time_keyboard=True)
+        btn_reply = types.KeyboardButton('Выбрать снова команду')
+        btn_main = types.KeyboardButton('Вернуться в главное меню')
+        rek_kb.add(btn_reply, btn_main)
 
-
-def remove_mes(chat_id, mes_id, index):
-    if index == 0:
-        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
-                              text='Ты сделал выбор🤯', reply_markup=None)
-    elif index == 1:
-        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
-                              text='Конференция выбрана✅', reply_markup=None)
-    elif index == 2:
-        bot.edit_message_text(chat_id=chat_id, message_id=mes_id,
-                              text='Команда выбрана✅', reply_markup=None)
+        bot.send_message(message.chat.id, 'Нажми на кнопку',
+                         reply_markup=rek_kb)
     else:
-        pass
-
-
-def reply_get_user_info(message):
-    time.sleep(3)
-    rek_kb = types.ReplyKeyboardMarkup(
-        resize_keyboard=True, one_time_keyboard=True)
-    btn_reply = types.KeyboardButton('Выбрать снова команду')
-    btn_main = types.KeyboardButton('Вернуться в главное меню')
-    rek_kb.add(btn_reply, btn_main)
-
-    bot.send_message(message.chat.id, 'Нажми на кнопку', reply_markup=rek_kb)
+        main_info(message)
 
 
 def main_info(message):
     first_kb = types.InlineKeyboardMarkup()
-    btn_all = types.InlineKeyboardButton(text='1', callback_data='all')
-    btn_single = types.InlineKeyboardButton(text='2', callback_data='single')
+    btn_all = types.InlineKeyboardButton(
+        text='Все команды', callback_data='all')
+    btn_single = types.InlineKeyboardButton(
+        text='Любимая команда', callback_data='single')
     first_kb.add(btn_all, btn_single)
 
-    bot.send_message(message.chat.id, "Ты в главном меню😎")
-    bot.send_message(message.chat.id, "1. Ты можешь узнать расписание команды выбирая её из списка всех команд\n2. Ты можешь добавить в 'Избранные' одну команду и узнавать расписание только этой команды\nВыбор за тобой🤫", reply_markup=first_kb)
+    bot.send_message(message.chat.id, "Мы переместились в главное меню😎")
+    bot.send_message(message.chat.id, "1. Ты можешь узнать расписание команды выбирая её из списка всех команд\n2. Ты можешь узнать расписание своей любимой команды\nВыбор за тобой🤫", reply_markup=first_kb)
 
 
 def true_time(time):
@@ -96,7 +80,7 @@ def true_time(time):
     return time_shd
 
 
-def print_game(team, message):
+def print_game(team, message, mode):
     wb = load_workbook("TrueShd.xlsx")
     sheet = wb[str(team)]
 
@@ -110,14 +94,14 @@ def print_game(team, message):
                 if int(time_today[0]) <= time_shd[0] and int(time_today[1]) < time_shd[1]:
                     bot.send_message(
                         message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
-                    reply_get_user_info(message)
+                    reply_get_user_info(message, mode)
                     break
                 else:
                     continue
             elif int(date_today[2]) < int(date_shd[2]):
                 bot.send_message(
                     message.chat.id, f"Следующая игра команды {config.TEAM[team]}\nДата: {sheet['A' + str(i + 1)].value}\nВремя: {sheet['C' + str(i + 1)].value}\nПротив команды {sheet['B' + str(i + 1)].value}")
-                reply_get_user_info(message)
+                reply_get_user_info(message, mode)
                 break
             else:
                 continue
@@ -125,35 +109,63 @@ def print_game(team, message):
             continue
 
 
+def first_choos_user(message):
+    global choos_id
+    choos_id = 1
+    bot.send_message(
+        message.chat.id, "Давай сначала ты выберешь любимую команду (ты её сможешь поменять в любой момент)")
+    bot.send_message(
+        message.chat.id, "Выбери конференцию", reply_markup=m_inl)
+
+
 @bot.message_handler(commands=['start'])
-def strat_user_info(message):
+def start_user_info(message):
     bot.send_message(message.chat.id, 'Привет, Я Бот "Shedule NBA"')
-    main_info(message)
+    first_choos_user(message)
 
 
 @bot.message_handler(content_types=['text'])
 def eror_message(message):
+    global choos_id, user
     if message.text == 'Выбрать снова команду':
         bot.send_message(
-            message.chat.id, "Выберите конференцию", reply_markup=m_inl)
+            message.chat.id, "Выбери конференцию", reply_markup=m_inl)
     elif message.text == 'Вернуться в главное меню':
         main_info(message)
+    elif message.text == 'Узнать время':
+        u_team = user.team
+        print_game(u_team, message, 2)
+    elif message.text == 'Поменять команду':
+        choos_id = 2
+        bot.send_message(
+            message.chat.id, "Выбери конференцию", reply_markup=m_inl)
     else:
         bot.send_message(message.chat.id, "Прости я не понимаю твою команду😔")
+        main_info(message)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call):
-    global choos_id
+    global choos_id, user
+    del_mes = call.message.message_id - 1
     if call.data == 'all':
         choos_id = 0
-        remove_mes(call.message.chat.id, call.message.message_id, 0)
-        bot.send_message(call.message.chat.id,
-                         'Выберите конференцию', reply_markup=m_inl)
+        bot.delete_message(chat_id=call.message.chat.id, message_id=del_mes)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Выбери конференцию', reply_markup=m_inl)
 
     elif call.data == 'single':
-        remove_mes(call.message.chat.id, call.message.message_id, 0)
-        choos_per(call.message)
+        choos_id = 2
+        bot.delete_message(chat_id=call.message.chat.id, message_id=del_mes)
+        rek_kb = types.ReplyKeyboardMarkup(
+            resize_keyboard=True, one_time_keyboard=True)
+        btn_reply = types.KeyboardButton('Узнать время')
+        btn_main = types.KeyboardButton('Поменять команду')
+        rek_kb.add(btn_reply, btn_main)
+        bot.delete_message(chat_id=call.message.chat.id,
+                           message_id=call.message.message_id)
+        bot.send_message(chat_id=call.message.chat.id,
+                         text='Выбери и нажми на кнопку', reply_markup=rek_kb)
 
     elif call.data == 'east':
         meast_inl = types.InlineKeyboardMarkup()
@@ -192,9 +204,8 @@ def answer(call):
             btn_ATL, btn_CHO, btn_MIA, btn_ORL, btn_WAS,
             btn_CHI, btn_CLE, btn_DET, btn_IND, btn_MIL)
 
-        remove_mes(call.message.chat.id, call.message.message_id, 1)
-        bot.send_message(call.message.chat.id,
-                         'Выберите команду', reply_markup=meast_inl)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Выбери команду', reply_markup=meast_inl)
 
     elif call.data == 'west':
         mwest_inl = types.InlineKeyboardMarkup()
@@ -233,20 +244,27 @@ def answer(call):
             btn_DAL, btn_HOU, btn_MEM, btn_NOP, btn_SAS,
             btn_GSW, btn_LAC, btn_LAL, btn_PHO, btn_SAC)
 
-        remove_mes(call.message.chat.id, call.message.message_id, 1)
-        bot.send_message(call.message.chat.id,
-                         'Выберите команду', reply_markup=mwest_inl)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Выбери команду', reply_markup=mwest_inl)
 
     else:
-        remove_mes(call.message.chat.id, call.message.message_id, 2)
-        if choos_id == 1:
+        if choos_id == 1 or choos_id == 2:
             id_user = call.message.from_user.id
             team_user = call.data
             user = Person(id_user, team_user)
             user.write_data()
-            reply_get_user_info(call.message)
+            if choos_id == 1:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text="Отлично, Ты теперь в любой момент можешь посмотреть расписание своей любимой команды", reply_markup=None)
+            else:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text="Ты поменял команду", reply_markup=None)
+            time.sleep(1)
+            main_info(call.message)
         else:
-            print_game(call.data, call.message)
+            bot.delete_message(chat_id=call.message.chat.id,
+                               message_id=call.message.message_id)
+            print_game(call.data, call.message, 1)
 
 
 m_inl = types.InlineKeyboardMarkup()
@@ -254,6 +272,7 @@ btn_east = types.InlineKeyboardButton(text='Восточная', callback_data='
 btn_west = types.InlineKeyboardButton(text='Западная', callback_data='west')
 m_inl.add(btn_east, btn_west)
 
+user = Person()
 choos_id = 0
 
 bot.polling(none_stop=True, interval=0)
