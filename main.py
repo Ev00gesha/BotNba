@@ -24,6 +24,10 @@ class Person:
         sql = sqlite3.connect("User_info.db")
         cur = sql.cursor()
 
+        cur.execute(
+                "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, id_user TEXT, team_user TEXT)")
+        sql.commit()
+
         cur.execute("SELECT id_user FROM users")
         x = cur.fetchall()
         sql.commit()
