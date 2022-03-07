@@ -28,10 +28,10 @@ class Person:
         x = db_cur.fetchall()
         db_con.commit()
 
-        data = [a[0] for a in x]
+        data = [a[0].strip() for a in x]
         if self.ind in data:
             db_cur.execute(
-                "UPDATE users SET team_user = ? WHERE id_user = ?", self.user_info)
+                "UPDATE users SET team_user = %s WHERE id_user = %s", self.user_info)
             db_con.commit()
         else:
             db_cur.execute(
@@ -64,13 +64,6 @@ def main_info(message):
 
     bot.send_message(message.chat.id, "Мы переместились в главное меню😎")
     bot.send_message(message.chat.id, "1. Ты можешь узнать расписание команды выбирая её из списка всех команд\n2. Ты можешь узнать расписание своей любимой команды\nВыбор за тобой🤫", reply_markup=first_kb)
-
-
-def true_time(time):
-    time_shd = time.split(':')
-    time_shd = [int(time_shd[i]) for i in range(len(time.split(':')))]
-    time_shd[0] += 3
-    return time_shd
 
 
 def true_time(time):
@@ -250,6 +243,7 @@ def answer(call):
     else:
         if choos_id == 1 or choos_id == 2:
             id_user = call.message.from_user.id
+            print(id_user)
             team_user = call.data
             user = Person(id_user, team_user)
             user.write_data()
