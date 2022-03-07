@@ -1,5 +1,6 @@
 from email.mime import message
 import sqlite3
+import psycopg2
 import telebot
 import datetime
 import config
@@ -8,6 +9,9 @@ from openpyxl import Workbook, load_workbook
 import time
 
 bot = telebot.TeleBot(config.CONFIG['token'])
+
+db_con = psycopg2.connect(config.DB_URI, sslmode="require")
+db_cur = db_con.cursor()
 
 
 class Person:
@@ -21,26 +25,19 @@ class Person:
         self.user_info = (self.team, self.ind)
 
     def write_data(self):
-        sql = sqlite3.connect("User_info.db")
-        cur = sql.cursor()
-
-        cur.execute(
-                "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, id_user TEXT, team_user TEXT)")
-        sql.commit()
-
-        cur.execute("SELECT id_user FROM users")
-        x = cur.fetchall()
-        sql.commit()
+        db_cur.execute("SELECT Id_user FROM Users")
+        x = db_cur.fetchall()
+        db_con.commit()
 
         data = [a[0] for a in x]
         if self.ind in data:
-            cur.execute(
-                "UPDATE users SET team_user = ? WHERE id_user = ?", self.user_info)
-            sql.commit()
+            db_cur.execute(
+                "UPDATE Users SET Team_user = ? WHERE Id_user = ?", self.user_info)
+            db_con.commit()
         else:
-            cur.execute(
-                "INSERT INTO users(team_user, id_user) VALUES (?, ?);", self.user_info)
-            sql.commit()
+            db_cur.execute(
+                "INSERT INTO Users(Team_user, Id_user) VALUES (?, ?);", self.user_info)
+            db_con.commit()
 
 
 def reply_get_user_info(message, mode):
