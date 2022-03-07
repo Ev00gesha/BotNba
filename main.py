@@ -126,13 +126,14 @@ def start_user_info(message):
 
 @bot.message_handler(content_types=['text'])
 def eror_message(message):
-    global choos_id, user, id_user
+    global choos_id, user
     if message.text == 'Выбрать снова команду':
         bot.send_message(
             message.chat.id, "Выбери конференцию", reply_markup=m_inl)
     elif message.text == 'Вернуться в главное меню':
         main_info(message)
     elif message.text == 'Узнать время':
+        id_user = message.from_user.id
         u_team = user.get_user_team(id_user)
         print_game(u_team[0].strip(), message, 2)
     elif message.text == 'Поменять команду':
