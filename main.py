@@ -1,5 +1,4 @@
 from email.mime import message
-import sqlite3
 import psycopg2
 import telebot
 import datetime
@@ -25,18 +24,18 @@ class Person:
         self.user_info = (self.team, self.ind)
 
     def write_data(self):
-        db_cur.execute("SELECT Id_user FROM Users")
+        db_cur.execute("SELECT id_user FROM users")
         x = db_cur.fetchall()
         db_con.commit()
 
         data = [a[0] for a in x]
         if self.ind in data:
             db_cur.execute(
-                "UPDATE Users SET Team_user = ? WHERE Id_user = ?", self.user_info)
+                "UPDATE users SET team_user = ? WHERE id_user = ?", self.user_info)
             db_con.commit()
         else:
             db_cur.execute(
-                "INSERT INTO Users(Team_user, Id_user) VALUES (?, ?);", self.user_info)
+                "INSERT INTO users(team_user, id_user) VALUES (%s, %s);", self.user_info)
             db_con.commit()
 
 
