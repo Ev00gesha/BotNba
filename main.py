@@ -19,7 +19,7 @@ class Person:
     user_info = ()
 
     def __init__(self, id_person=ind, team_person=team):
-        self.ind = str(id_person)
+        self.ind = id_person
         self.team = str(team_person)
         self.user_info = (self.team, self.ind)
 
@@ -28,7 +28,7 @@ class Person:
         x = db_cur.fetchall()
         db_con.commit()
 
-        data = [a[0].strip() for a in x]
+        data = [a[0] for a in x]
         if self.ind in data:
             db_cur.execute(
                 "UPDATE users SET team_user = %s WHERE id_user = %s", self.user_info)
@@ -37,6 +37,11 @@ class Person:
             db_cur.execute(
                 "INSERT INTO users(team_user, id_user) VALUES (%s, %s);", self.user_info)
             db_con.commit()
+
+    def get_user_team(self, id_user):
+        db_cur.execute(
+            f"SELECT team_user FROM users WHERE id_user = {id_user};")
+        return db_cur.fetchone()
 
 
 def reply_get_user_info(message, mode):
@@ -113,21 +118,23 @@ def first_choos_user(message):
 
 @bot.message_handler(commands=['start'])
 def start_user_info(message):
+    global id_user
+    id_user = message.from_user.id
     bot.send_message(message.chat.id, 'Привет, Я Бот "Shedule NBA"')
     first_choos_user(message)
 
 
 @bot.message_handler(content_types=['text'])
 def eror_message(message):
-    global choos_id, user
+    global choos_id, user, id_user
     if message.text == 'Выбрать снова команду':
         bot.send_message(
             message.chat.id, "Выбери конференцию", reply_markup=m_inl)
     elif message.text == 'Вернуться в главное меню':
         main_info(message)
     elif message.text == 'Узнать время':
-        u_team = user.team
-        print_game(u_team, message, 2)
+        u_team = user.get_user_team(id_user)
+        print_game(u_team[0].strip(), message, 2)
     elif message.text == 'Поменять команду':
         choos_id = 2
         bot.send_message(
@@ -139,7 +146,7 @@ def eror_message(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def answer(call):
-    global choos_id, user
+    global choos_id, user, id_user
     del_mes = call.message.message_id - 1
     if call.data == 'all':
         choos_id = 0
@@ -242,8 +249,6 @@ def answer(call):
 
     else:
         if choos_id == 1 or choos_id == 2:
-            id_user = call.message.from_user.id
-            print(id_user)
             team_user = call.data
             user = Person(id_user, team_user)
             user.write_data()
@@ -268,5 +273,6 @@ m_inl.add(btn_east, btn_west)
 
 user = Person()
 choos_id = 0
+id_user = 0
 
 bot.polling(none_stop=True, interval=0)
