@@ -9,7 +9,7 @@ import time
 
 bot = telebot.TeleBot(config.CONFIG['token'])
 
-db_con = psycopg2.connect(config.DB_URI, sslmode="require")
+db_con = psycopg2.connect("dbname=d88e8nu9n2ngq1 user=pfonljqshtvuzv host=ec2-54-228-97-176.eu-west-1.compute.amazonaws.com password=09d7f92ad0900c867d6233570339398aba1d5677c711ef5ded2214b056d0eef0 port=5432", sslmode="require")
 db_cur = db_con.cursor()
 
 
